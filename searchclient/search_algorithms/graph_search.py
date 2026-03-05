@@ -74,6 +74,9 @@ def graph_search(
     expanded = set()
     frontier.add(initial_state)
     while not frontier.is_empty():
+        # Display frontier contents at every iteration
+        print_frontier_contents(frontier, goal_description)
+        
         next_state = frontier.pop()
 
         if goal_description.is_goal(next_state):
@@ -95,6 +98,67 @@ def graph_search(
 start_time = 0
 
 
+def print_frontier_contents(frontier, goal_description):
+    """
+    Display the current contents of the frontier with g, h, and f-values.
+    g = path cost from start to current state
+    h = heuristic estimate from current state to goal
+    f = g + h (evaluation function)
+    """
+    print("\n" + "="*80)
+    print(f"FRONTIER CONTENTS (Size: {frontier.size()})")
+    print("="*80)
+    
+    # Check if this is a best-first frontier with heuristic support
+    has_heuristic = hasattr(frontier, 'heuristic') and frontier.heuristic is not None
+    
+    if frontier.size() == 0:
+        print("Frontier is empty!")
+        return
+    
+    # For best-first search frontiers (Greedy, A*)
+    if hasattr(frontier, 'priority_queue') and hasattr(frontier.priority_queue, 'entry_finder'):
+        states = list(frontier.priority_queue.entry_finder.keys())
+        
+        # Header
+        if has_heuristic:
+            print(f"{'State':<30} {'g-value':<12} {'h-value':<12} {'f-value':<12}")
+            print("-" * 80)
+            
+            # Display each state with its values
+            for s in states:
+                g_value = s.path_cost
+                h_value = frontier.heuristic.h(s, goal_description)
+                f_value = frontier.priority_queue.get_priority(s)
+                print(f"{str(s):<30} {g_value:<12} {h_value:<12} {f_value:<12}")
+        else:
+            print(f"{'State':<30} {'f-value (priority)':<30}")
+            print("-" * 80)
+            
+            for s in states:
+                f_value = frontier.priority_queue.get_priority(s)
+                print(f"{str(s):<30} {f_value:<30}")
+    
+    # For simple frontiers (BFS, DFS) that don't have priority_queue
+    else:
+        if hasattr(frontier, 'queue'):
+            states = list(frontier.queue)
+        elif hasattr(frontier, 'stack'):
+            states = list(frontier.stack)
+        else:
+            print("Unknown frontier type")
+            return
+        
+        print(f"{'State':<30} {'g-value (path cost)':<30}")
+        print("-" * 80)
+        
+        for s in states:
+            g_value = s.path_cost
+            print(f"{str(s):<30} {g_value:<30}")
+    
+    print("="*80 + "\n")
+
+
 def print_search_status(expanded, frontier, print_search_meta_data=True):
     global start_time
     
@@ -102,8 +166,6 @@ def print_search_status(expanded, frontier, print_search_meta_data=True):
         start_time = time.time()
     memory_usage_bytes = memory.get_usage()
     
-    # Replacing the generated comma thousands separators with dots is neither pretty nor locale aware but none of
-    # Pythons four different formatting facilities seems to handle this correctly!
     num_expanded = f"{len(expanded):8,d}".replace(',', '.')
     num_frontier = f"{frontier.size():8,d}".replace(',', '.')
     num_generated = f"{len(expanded) + frontier.size():8,d}".replace(',', '.')
@@ -113,6 +175,6 @@ def print_search_status(expanded, frontier, print_search_meta_data=True):
                   f" Time: {elapsed_time} s, Memory: {memory_usage_mb} MB\n\n"
     
     if print_search_meta_data:
-        print(status_text, file=sys.stderr)
+        print(status_text)
 
     return num_generated, elapsed_time
