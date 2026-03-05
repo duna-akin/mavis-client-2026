@@ -177,4 +177,4 @@ class FrontierGreedy(FrontierBestFirst):
         This greedily expands the node that is estimated to be closest to the goal,
         without considering the actual cost of the path taken so far.
         """
-        return self.heuristic(state, goal_description)
+        return self.heuristic.h(state, goal_description)
