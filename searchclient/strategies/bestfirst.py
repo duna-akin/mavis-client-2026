@@ -93,29 +93,57 @@ class FrontierBestFirst:
 
 
     def prepare(self, goal_description: h_goal_description.HospitalGoalDescription):
+        """
+        Prepare is called at the beginning of a search and since we will sometimes reuse frontiers for multiple
+        searches, prepare must ensure that state is cleared.
+        """
         self.goal_description = goal_description
-        # Prepare is called at the beginning of a search and since we will sometimes reuse frontiers for multiple
-        # searches, prepares must ensure that state is cleared.
-        # Your code here...
-        raise NotImplementedError()
+        self.priority_queue.clear()
 
     def f(self, state: h_state.HospitalState, goal_description: h_goal_description.HospitalGoalDescription) -> int:
         raise Exception("FrontierBestFirst should not be directly used. Instead use a subclass overriding f()")
 
     def add(self, state: h_state.HospitalState):
-        raise NotImplementedError()
+        """
+        Add a state to the frontier with priority determined by f(state).
+        If the state is already in the frontier and the new priority is better (lower),
+        update its priority.
+        """
+        priority = self.f(state, self.goal_description)
+        
+        # Check if state is already in the frontier
+        if self.contains(state):
+            # Update priority if the new priority is better (lower)
+            current_priority = self.priority_queue.get_priority(state)
+            if priority < current_priority:
+                self.priority_queue.change_priority(state, priority)
+        else:
+            # Add new state to the frontier
+            self.priority_queue.add(state, priority)
 
     def pop(self) -> h_state.HospitalState:
-        raise NotImplementedError()
+        """
+        Remove and return the state with the lowest f value from the frontier.
+        """
+        return self.priority_queue.pop()
 
     def is_empty(self) -> bool:
-        raise NotImplementedError()
+        """
+        Check if the frontier is empty.
+        """
+        return self.priority_queue.size() == 0
 
     def size(self) -> int:
-        raise NotImplementedError()
+        """
+        Return the number of states in the frontier.
+        """
+        return self.priority_queue.size()
 
     def contains(self, state: h_state.HospitalState) -> bool:
-        raise NotImplementedError()
+        """
+        Check if a state is in the frontier.
+        """
+        return state in self.priority_queue.entry_finder
 
 
 # The FrontierAStar and FrontierGreedy classes extend the FrontierBestFirst class, that is, they are
@@ -127,8 +155,13 @@ class FrontierAStar(FrontierBestFirst):
         self.heuristic = heuristic
 
     def f(self, state: h_state.HospitalState, goal_description: h_goal_description.HospitalGoalDescription) -> int:
+        """
+        A* uses f(s) = g(s) + h(s)
+        where g(s) is the cost from the start state to s
+        and h(s) is the estimated cost from s to the goal
+        """
         raise NotImplementedError()
-        
+
 
 class FrontierGreedy(FrontierBestFirst):
 
@@ -137,5 +170,11 @@ class FrontierGreedy(FrontierBestFirst):
         self.heuristic = heuristic
 
     def f(self, state: h_state.HospitalState, goal_description: h_goal_description.HospitalGoalDescription) -> int:
-        raise NotImplementedError()
-    
+        """
+        Greedy Best First Search uses f(s) = h(s)
+        where h(s) is the heuristic estimate of the cost from state s to the goal.
+        
+        This greedily expands the node that is estimated to be closest to the goal,
+        without considering the actual cost of the path taken so far.
+        """
+        return self.heuristic(state, goal_description)
