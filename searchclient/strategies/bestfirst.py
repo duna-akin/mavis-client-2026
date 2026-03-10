@@ -160,7 +160,9 @@ class FrontierAStar(FrontierBestFirst):
         where g(s) is the cost from the start state to s
         and h(s) is the estimated cost from s to the goal
         """
-        raise NotImplementedError()
+        self.g = state.path_cost
+        self.h = self.heuristic.h(state, goal_description)
+        return self.g + self.h
 
 
 class FrontierGreedy(FrontierBestFirst):
