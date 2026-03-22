@@ -58,12 +58,10 @@ class HospitalGoalCountHeuristics:
     
     def h(self, state: h_state.HospitalState, 
                 goal_description: h_goal_description.HospitalGoalDescription) -> int:
-        
         for goal in goal_description.box_goals:
             self.box_goal_positions.add(goal[0])
         for goal in goal_description.agent_goals:
             self.agent_goal_positions.add(goal[0])
-        goals = len(self.agent_goal_positions) + len(self.box_goal_positions)
         for agent_position in state.agent_positions:
             if agent_position[0] in self.agent_goal_positions:
                 goals -= 1
@@ -76,13 +74,30 @@ class HospitalGoalCountHeuristics:
 class HospitalAdvancedHeuristics:
 
     def __init__(self):
-        raise NotImplementedError()
+        self.agent_goal_positions = {}
+        self.box_goal_positions = {}
 
     def preprocess(self, level: h_level.HospitalLevel):
         # This function will be called a single time prior to the search allowing us to preprocess the level such as
         # pre-computing lookup tables or other acceleration structures
-        raise NotImplementedError()
+        pass
 
     def h(self, state: h_state.HospitalState, goal_description: h_goal_description.HospitalGoalDescription) -> int:
         # your heuristic goes here...      
-        raise NotImplementedError()
+        distance = 0
+        for goal in goal_description.box_goals:
+            self.box_goal_positions[goal[1]] = goal[0]
+        for goal in goal_description.agent_goals:
+            self.agent_goal_positions[goal[1]] = goal[0]
+        for agent_position in state.agent_positions:
+            agent = agent_position[0]
+            goal_pos = self.agent_goal_positions.get(agent_position[1], None)
+            if goal_pos is not None and agent[0] != goal_pos:
+                distance += abs(agent[0] - goal_pos[0]) + abs(agent[1] - goal_pos[1])
+        for box_position in state.box_positions:
+            box = box_position[0]
+            goal_pos = self.box_goal_positions.get(box_position[1], None)
+            if goal_pos is not None and box[0] != goal_pos:
+                distance += abs(box[0] - goal_pos[0]) + abs(box[1] - goal_pos[1])
+        return distance
+        
