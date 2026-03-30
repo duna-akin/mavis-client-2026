@@ -58,6 +58,7 @@ class HospitalGoalCountHeuristics:
     
     def h(self, state: h_state.HospitalState, 
                 goal_description: h_goal_description.HospitalGoalDescription) -> int:
+        goals = len(goal_description.goals)
         for goal in goal_description.box_goals:
             self.box_goal_positions.add(goal[0])
         for goal in goal_description.agent_goals:
