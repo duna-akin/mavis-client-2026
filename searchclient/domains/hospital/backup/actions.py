@@ -145,13 +145,7 @@ class PushAction:
 
     def __repr__(self):
         return self.name
-    
-direction_deltas = {
-    'N': (-1, 0),
-    'S': (1, 0),
-    'E': (0, 1),
-    'W': (0, -1),
-}
+
 
 class PullAction:
 
